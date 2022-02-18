@@ -1,0 +1,3 @@
+module MyLang {
+	requires junit;
+}
