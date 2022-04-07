@@ -58,6 +58,9 @@ public class Parser extends Thread {
 	 * 
 	 * 		EXP ::= TERM
 	 * 		EXP ::= EXP [+|-|&&||||<|<=|>|<=|==|!=] TERM
+	 * 		EXP ::= ASSIGN
+	 * 		
+	 * 		ASSIGN ::= IDENT = EXP
 	 * 
 	 * 		TERM ::= POT
 	 * 		TERM ::= FACTOR * POT
@@ -67,6 +70,7 @@ public class Parser extends Thread {
 	 * 		POT ::= FACTOR ^ POT
 	 * 		FACTOR ::= id
 	 * 		FACTOR ::= num
+	 * 		FACTOR ::= $IDENT
 	 * 		FACTOR ::= ! EXP
 	 * 		FACTOR ::= ( EXP )
 	 * }
@@ -105,13 +109,17 @@ public class Parser extends Thread {
 	private Exp parseBlock() {
 		BlockExp blockExp = new BlockExp();
 		Vector <DeclExp> declarations = new Vector<>();
+		endDeclarations = false;
 		
-		if(currentToken.equals("int")) {
-			while(!endDeclarations)
-				declarations.add((DeclExp) parseDeclaration());
+		while(!currentToken.equals("}")) {
+			if(currentToken.equals("int")) {
+				while(!endDeclarations)
+					declarations.add((DeclExp) parseDeclaration());
+				currentToken = scanner.getNextToken();
+			}
+			blockExp.add(parseStatement());
 		}
 		currentToken = scanner.getNextToken();
-		blockExp.add(parseStatement());
 		
 		return blockExp;
 	}
@@ -119,7 +127,7 @@ public class Parser extends Thread {
 	private Exp parseDeclaration() {
 		DeclExp declExp = null;
 		
-		if(currentToken.equals("int")) {
+		/*if(currentToken.equals("int")) {
 			currentToken = scanner.getNextToken();
 			Exp left = parseExp();
 			
@@ -131,7 +139,17 @@ public class Parser extends Thread {
 			Exp right = parseExp();
 			
 			declExp = new DeclExp("int", left, right);
+		}*/
+		if(currentToken.equals("int")) {
+			currentToken = scanner.getNextToken();
+			String id = currentToken.toString();
+			currentToken = scanner.getNextToken();
+			if (!(currentToken.equals("="))) return null;
+			currentToken = scanner.getNextToken();
+			Exp t2 = parseExp();
+			declExp = new DeclExp("int", new LValueExp(id), t2);
 		}
+		
 		
 		
 		
@@ -175,7 +193,7 @@ public class Parser extends Thread {
 	private Exp parseElse() {
 		Exp elseExp = null;
 		
-		if(currentToken.equals("if")) {
+		if(currentToken.equals("if")) { //if innestato
 			currentToken = scanner.getNextToken();
 			elseExp = parseIf();
 		}
@@ -201,7 +219,7 @@ public class Parser extends Thread {
 		whileExp = new WhileExp(cond);
 		Exp action = parseStatement();
 		if(action == null) {
-			System.out.println("Manca azione if");
+			System.out.println("Manca azione while");
 		}
 		whileExp.setAction(action);
 		
@@ -262,6 +280,19 @@ public class Parser extends Thread {
 				Exp t2 = parseTerm(); 
 				t1 = new MinusExp(t1, t2);
 			}
+			else if (currentToken.equals("=")) {
+				currentToken = scanner.getNextToken();
+				Exp t2 = parseExp(); //espressione es. a = $ a * 2
+				t1 = new AssignExp(t1, t2);
+			}
+			/*else if (currentToken.isIdentifier()) {
+				String id = currentToken.toString();
+				currentToken = scanner.getNextToken();
+				if (!(currentToken.equals("="))) return null;
+				currentToken = scanner.getNextToken();
+				Exp t2 = parseExp();
+				t1 = new AssignExp(new LValueExp(id), t2);
+			}*/
 			else return t1;
 		}
 		return t1;
@@ -324,7 +355,14 @@ public class Parser extends Thread {
 			String id = this.currentToken.toString();
 			
 			this.currentToken = this.scanner.getNextToken();
-			return new GenExp(id);
+			//return new GenExp(id);
+			return new LValueExp(id);
+		}
+		else if (currentToken.equals("$")) { //R-Value
+			currentToken = scanner.getNextToken();
+			String id = currentToken.toString();
+			currentToken = scanner.getNextToken();
+			return new RValueExp(id);
 		}
 		else if (currentToken.isNumber()) {
 			int val = this.currentToken.getAsInt();

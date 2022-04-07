@@ -30,4 +30,6 @@ public interface ExpVisitor {
 	public void visit(GenExp e);
 	public void visit(DeclExp e);
 	public void visit(AssignExp e);
+	public void visit(LValueExp e);
+	public void visit(RValueExp e);
 }

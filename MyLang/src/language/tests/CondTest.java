@@ -102,4 +102,27 @@ public class CondTest {
 
 		assertTrue("Expected True", v.getResult() == 5); //2 + 3
 	}
+	
+
+	@Test
+	public void testVarCond() {
+		DeclExp decl = new DeclExp("int", new LValueExp("a"), new NumExp(10)); //int a = 10
+		Exp e = new EqExp(decl, new NumExp(10)); //(a == 10)
+		
+		EvalExpVisitor v = new EvalExpVisitor();
+		e.accept(v);
+
+		assertTrue("Expected True", v.getResult() == 10);
+		
+		Exp e2 = new GtExp(new LValueExp("a"), new NumExp(100)); //(a > 100)
+		e2.accept(v);
+
+		assertFalse("Expected False", v.getResult() == 100);
+		
+
+		Exp e3 = new LtExp(new LValueExp("a"), new NumExp(100)); //(a < 100)
+		e3.accept(v);
+
+		assertTrue("Expected True", v.getResult() == 1);
+	}
 }

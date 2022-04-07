@@ -177,13 +177,35 @@ public class EvalExpVisitor implements ExpVisitor {
 	
 	@Override
 	public void visit(AssignExp e) {
-		e.left().accept(this); String id = getResult().toString();
+		e.left().accept(this); String id = getId();
 		e.right().accept(this); Integer val = getResult();
 		
-		if(this.env.has(id)) {
+		/*if(this.env.has(id)) {
 			e.right().accept(this);
 			
 			value = this.env.setVariable(id, val).getValue();
+		}*/
+		this.env.add(id, val); // Entry sostituita se esiste
+	}
+
+	@Override
+	public void visit(LValueExp e) {
+		id = e.getName();
+		
+		if (env.has(id)) { //Stampa valore per comodità
+			System.out.println(env.get(id).getValue());
+		}
+	}
+
+	@SuppressWarnings("unused")
+	@Override
+	public void visit(RValueExp e) {
+		String id = e.getName();
+		Integer val = env.get(id).getValue(); // Recupero valore
+		
+		if (val != null) value = val; // Memorizzo valore
+		else { // Non dovrebbe mai accadere
+			throw new RuntimeException("Invalid identifier");
 		}
 	}
 
