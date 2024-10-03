@@ -6,7 +6,7 @@ public class OrExp extends OpExp {
 	public OrExp(Exp l, Exp r) { super(l, r); }
 	
 	@Override
-	String myOp() { return "&&"; }
+	String myOp() { return "||"; }
 	
 	public void accept(ExpVisitor v) { v.visit(this); }
 }
